@@ -29,18 +29,21 @@
             var trabajadorStore = Ext.create('Ext.data.Store', {
                 model: 'MyApp.model.Trabajador',
                 autoLoad: true,
+                pageSize: 10,
                 proxy: {
                     type: 'rest',
                     url: '/api/trabajadores',
                     reader: {
                         type: 'json',
-                        root: 'data'
+                        root: 'data',
+                        totalProperty: 'meta.total' // Asegúrate de ajustar esto según la respuesta de la API
                     },
                     writer: {
                         type: 'json',
                         writeAllFields: true
                     }
-                }
+                },
+                filters: [], // Aquí se almacenarán los filtros aplicados
             });
 
             // Panel de formulario
@@ -51,14 +54,16 @@
                 defaultType: 'textfield',
                 items: [
                     { name: 'tra_ide', xtype: 'hidden' },
-                    { fieldLabel: 'Código', name: 'tra_cod', xtype: 'numberfield', minValue: 0 },
-                    { fieldLabel: 'Nombre', name: 'tra_nom' },
-                    { fieldLabel: 'Apellido Paterno', name: 'tra_pat' },
-                    { fieldLabel: 'Apellido Materno', name: 'tra_mat' }
+                    { fieldLabel: 'Código', name: 'tra_cod', xtype: 'numberfield', minValue: 0, allowBlank: false },
+                    { fieldLabel: 'Nombre', name: 'tra_nom', allowBlank: false },
+                    { fieldLabel: 'Apellido Paterno', name: 'tra_pat', allowBlank: false },
+                    { fieldLabel: 'Apellido Materno', name: 'tra_mat', allowBlank: false }
                 ],
                 buttons: [
                     {
                         text: 'Guardar',
+                        formBind: true,
+                        disabled: true,
                         handler: function () {
                             var form = formPanel.getForm();
                             if (form.isValid()) {
@@ -70,14 +75,13 @@
                                 form.submit({
                                     url: url,
                                     method: method,
-                                    params: values,
                                     success: function () {
-                                        trabajadorStore.load();
+                                        trabajadorStore.load(); // Recarga el store para actualizar la grilla
                                         form.reset();
                                         formPanel.hide();
                                     },
-                                    failure: function () {
-                                        Ext.Msg.alert('Error', 'No se pudo guardar el trabajador.');
+                                    failure: function (form, action) {
+                                        Ext.Msg.alert('Error', action.result.message || 'No se pudo guardar el trabajador.');
                                     }
                                 });
                             }
@@ -106,6 +110,24 @@
                     { text: 'Apellido Materno', dataIndex: 'tra_mat', flex: 2 }
                 ],
                 tbar: [
+                    {
+                        xtype: 'textfield',
+                        emptyText: 'Buscar...',
+                        listeners: {
+                            change: function (field, newValue) {
+                                trabajadorStore.clearFilter(); // Limpiar filtros anteriores
+                                if (newValue) {
+                                    trabajadorStore.filter({
+                                        filterFn: function (record) {
+                                            return record.get('tra_nom').toLowerCase().includes(newValue.toLowerCase()) ||
+                                                record.get('tra_pat').toLowerCase().includes(newValue.toLowerCase()) ||
+                                                record.get('tra_mat').toLowerCase().includes(newValue.toLowerCase());
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    },
                     {
                         xtype: 'button',
                         text: 'Nuevo Trabajador',
@@ -144,8 +166,13 @@
                         }
                     }
                 ],
+                bbar: {
+                    xtype: 'pagingtoolbar',
+                    store: trabajadorStore,
+                    displayInfo: true
+                },
                 height: 400,
-                width: 600,
+                width: 800,
                 listeners: {
                     itemclick: function (grid, record) {
                         formPanel.getForm().loadRecord(record);

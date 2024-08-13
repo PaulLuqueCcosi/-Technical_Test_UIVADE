@@ -29,7 +29,7 @@ class TrabajadorController extends Controller
 
             // Paginación
             $page = $request->input('page', 1);
-            $perPage = $request->input('perPage', 5);
+            $perPage = $request->input('limit', 10);
             $trabajadores = $query->paginate($perPage, ['*'], 'page', $page);
 
             return response()->json([
