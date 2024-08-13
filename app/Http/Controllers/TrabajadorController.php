@@ -12,7 +12,7 @@ class TrabajadorController extends Controller
 {
     public function index()
     {
-        $trabajadores = Trabajador::all();
+        $trabajadores = Trabajador::where('est_ado', 1)->get();
         $data = [
             'data' => $trabajadores
         ];
@@ -54,15 +54,23 @@ class TrabajadorController extends Controller
         try {
             $trabajador = Trabajador::findOrFail($id);
 
-            // Actualización de est_ado
+            // Verificar si el trabajador ya está eliminado (estado = 0)
+            if ($trabajador->est_ado === 0) {
+                $data = [
+                    'message' => 'El Trabajador ya ha sido eliminado anteriormente.',
+                ];
+                return response()->json($data, Response::HTTP_OK);
+            }
+
+            // Actualización de est_ado a 0 (eliminado)
             $trabajador->update(['est_ado' => 0]);
 
             $data = [
                 'data' => $trabajador,
                 'message' => 'Trabajador eliminado correctamente.',
             ];
-
             return response()->json($data, Response::HTTP_OK);
+
         } catch (ModelNotFoundException $e) {
             $data = [
                 'error' => 'Trabajador no encontrado.',
@@ -77,4 +85,5 @@ class TrabajadorController extends Controller
             return response()->json($data, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 }
