@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Trabajador;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -34,11 +35,15 @@ class TrabajadorController extends Controller
             $validator = Validator::make($request->all(), [
                 'tra_cod' => [
                     'required',
-                    'integer',
                     function ($attribute, $value, $fail) {
-                        $exists = Trabajador::activo()->where('tra_cod', $value)->exists();
-                        if ($exists) {
-                            $fail("El código de trabajador ya ha sido registrado.");
+                        if (!is_integer($value) || $value <= 0) {
+                            $fail("The tra_cod must be an integer value.");
+                        } else {
+
+                            $exists = Trabajador::where('tra_cod', $value)->exists();
+                            if ($exists) {
+                                $fail("El código de trabajador ya ha sido registrado.");
+                            }
                         }
                     },
                 ],
@@ -101,18 +106,23 @@ class TrabajadorController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'tra_cod' => [
-                'required',
-                'integer',
                 function ($attribute, $value, $fail) use ($id) {
-                    $exists = Trabajador::activo()->where('tra_cod', $value)->where('tra_ide', '<>', $id)->exists();
-                    if ($exists) {
-                        $fail("El código de trabajador ya está en uso por otro trabajador activo.");
+                    if (!is_integer($value) || $value <= 0) {
+                        $fail("The tra_cod must be an integer value.");
+                    } else {
+
+                        $exists = Trabajador::where('tra_cod', $value)->where('tra_ide', '<>', $id)->exists();
+                        if ($exists) {
+                            $fail("El código de trabajador ya está en uso.");
+                        }
                     }
                 },
+
+
             ],
-            'tra_nom' => 'required|string|max:200',
-            'tra_pat' => 'required|string|max:200',
-            'tra_mat' => 'required|string|max:200',
+            'tra_nom' => 'string|max:200',
+            'tra_pat' => 'string|max:200',
+            'tra_mat' => 'string|max:200',
         ]);
 
         if ($validator->fails()) {
