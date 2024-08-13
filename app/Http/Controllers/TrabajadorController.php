@@ -169,4 +169,29 @@ class TrabajadorController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        try {
+            // Buscar el trabajador activo por su ID usando el scope
+            $trabajador = Trabajador::activo()->findOrFail($id);
+
+            // Retornar el trabajador encontrado
+            return response()->json([
+                'data' => $trabajador,
+                'message' => "Recuperado Correctamente"
+            ], Response::HTTP_OK);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Trabajador no encontrado',
+                'message' => 'El trabajador con el ID especificado no existe o ha sido eliminado.'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'message' => 'Error en la recuperación del Trabajador.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
