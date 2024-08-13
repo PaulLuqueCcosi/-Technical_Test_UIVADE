@@ -6,6 +6,7 @@ use App\Models\Trabajador;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TrabajadorController extends Controller
 {
@@ -13,7 +14,7 @@ class TrabajadorController extends Controller
     {
         $trabajadores = Trabajador::all();
         $data = [
-            'trabajador' => $trabajadores
+            'data' => $trabajadores
         ];
         return response()->json($data, Response::HTTP_OK);
     }
@@ -35,7 +36,7 @@ class TrabajadorController extends Controller
             return response()->json($data, Response::HTTP_BAD_REQUEST);
         }
 
-        $trabajador = Trabajador::create([$validator->validated()]);
+        $trabajador = Trabajador::create($validator->validated());
 
         if (!$trabajador) {
             $data = [
@@ -48,4 +49,32 @@ class TrabajadorController extends Controller
 
     }
 
+    public function destroy($id)
+    {
+        try {
+            $trabajador = Trabajador::findOrFail($id);
+
+            // Actualización de est_ado
+            $trabajador->update(['est_ado' => 0]);
+
+            $data = [
+                'data' => $trabajador,
+                'message' => 'Trabajador eliminado correctamente.',
+            ];
+
+            return response()->json($data, Response::HTTP_OK);
+        } catch (ModelNotFoundException $e) {
+            $data = [
+                'error' => 'Trabajador no encontrado.',
+                'message' => 'Error en la eliminación del Trabajador.',
+            ];
+            return response()->json($data, Response::HTTP_NOT_FOUND);
+        } catch (\Exception $e) {
+            $data = [
+                'error' => $e->getMessage(),
+                'message' => 'Error en la eliminación del Trabajador.',
+            ];
+            return response()->json($data, Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
