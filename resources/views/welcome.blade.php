@@ -65,13 +65,17 @@
                                 var values = form.getValues();
                                 // Convierte 'tra_cod' a entero
                                 values.tra_cod = parseInt(values.tra_cod, 10);
+                                var url = form.isValid() ? (values.tra_ide ? '/api/trabajadores/' + values.tra_ide : '/api/trabajadores') : '';
+                                var method = values.tra_ide ? 'PUT' : 'POST';
 
                                 form.submit({
-                                    url: '/api/trabajadores',
-                                    params: values, // Enviar los parámetros convertidos
+                                    url: url,
+                                    method: method,
+                                    params: values,
                                     success: function (form, action) {
                                         trabajadorStore.load();
                                         form.reset();
+                                        formPanel.hide();
                                     },
                                     failure: function (form, action) {
                                         Ext.Msg.alert('Error', 'No se pudo guardar el trabajador.');
@@ -84,9 +88,11 @@
                         text: 'Cancelar',
                         handler: function () {
                             formPanel.getForm().reset();
+                            formPanel.hide();
                         }
                     }
-                ]
+                ],
+                hidden: true
             });
 
             // Grid para mostrar los trabajadores
@@ -105,6 +111,8 @@
                 listeners: {
                     itemclick: function (grid, record) {
                         formPanel.getForm().loadRecord(record);
+                        formPanel.setTitle('Modificar Trabajador');
+                        formPanel.show();
                     }
                 }
             });
@@ -118,6 +126,7 @@
                         text: 'Nuevo',
                         handler: function () {
                             formPanel.getForm().reset();
+                            formPanel.setTitle('Nuevo Trabajador');
                             formPanel.show();
                         }
                     },
@@ -125,10 +134,10 @@
                         xtype: 'button',
                         text: 'Modificar',
                         handler: function () {
-                            var form = formPanel.getForm();
                             var record = grid.getSelectionModel().getSelection()[0];
                             if (record) {
-                                form.loadRecord(record);
+                                formPanel.getForm().loadRecord(record);
+                                formPanel.setTitle('Modificar Trabajador');
                                 formPanel.show();
                             } else {
                                 Ext.Msg.alert('Error', 'Seleccione un trabajador para modificar.');
