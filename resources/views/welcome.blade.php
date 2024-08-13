@@ -63,7 +63,6 @@
                             var form = formPanel.getForm();
                             if (form.isValid()) {
                                 var values = form.getValues();
-                                // Convierte 'tra_cod' a entero
                                 values.tra_cod = parseInt(values.tra_cod, 10);
                                 var url = values.tra_ide ? '/api/trabajadores/' + values.tra_ide : '/api/trabajadores';
                                 var method = values.tra_ide ? 'PUT' : 'POST';
@@ -72,12 +71,12 @@
                                     url: url,
                                     method: method,
                                     params: values,
-                                    success: function (form, action) {
+                                    success: function () {
                                         trabajadorStore.load();
                                         form.reset();
                                         formPanel.hide();
                                     },
-                                    failure: function (form, action) {
+                                    failure: function () {
                                         Ext.Msg.alert('Error', 'No se pudo guardar el trabajador.');
                                     }
                                 });
@@ -107,10 +106,9 @@
                     { text: 'Apellido Materno', dataIndex: 'tra_mat', flex: 2 }
                 ],
                 tbar: [{
+                    xtype: 'button',
                     text: 'Nuevo Trabajador',
-                    action: 'add',
                     handler: function () {
-                        // Resetea el formulario y lo muestra para agregar un nuevo trabajador
                         formPanel.getForm().reset();
                         formPanel.setTitle('Nuevo Trabajador');
                         formPanel.show();
@@ -127,70 +125,10 @@
                 }
             });
 
-            // Botones para las acciones
-            var buttonsPanel = Ext.create('Ext.panel.Panel', {
-                layout: 'hbox',
-                items: [
-                    {
-                        xtype: 'button',
-                        text: 'Nuevo',
-                        handler: function () {
-                            formPanel.getForm().reset();
-                            formPanel.setTitle('Nuevo Trabajador');
-                            formPanel.show();
-                        }
-                    },
-                    {
-                        xtype: 'button',
-                        text: 'Modificar',
-                        handler: function () {
-                            var record = grid.getSelectionModel().getSelection()[0];
-                            if (record) {
-                                formPanel.getForm().loadRecord(record);
-                                formPanel.setTitle('Modificar Trabajador');
-                                formPanel.show();
-                            } else {
-                                Ext.Msg.alert('Error', 'Seleccione un trabajador para modificar.');
-                            }
-                        }
-                    },
-                    {
-                        xtype: 'button',
-                        text: 'Eliminar',
-                        handler: function () {
-                            var record = grid.getSelectionModel().getSelection()[0];
-                            if (record) {
-                                Ext.Msg.confirm('Eliminar Trabajador',
-                                    '¿Está seguro de que desea eliminar este trabajador?',
-                                    function (button) {
-                                        if (button === 'yes') {
-                                            Ext.Ajax.request({
-                                                url: '/api/trabajadores/' + record.get('tra_ide'),
-                                                method: 'PUT',
-                                                jsonData: { est_ado: 1 }, // Cambia el estado a eliminado
-                                                success: function () {
-                                                    trabajadorStore.load();
-                                                },
-                                                failure: function () {
-                                                    Ext.Msg.alert('Error', 'No se pudo eliminar el trabajador.');
-                                                }
-                                            });
-                                        }
-                                    }
-                                );
-                            } else {
-                                Ext.Msg.alert('Error', 'Seleccione un trabajador para eliminar.');
-                            }
-                        }
-                    }
-                ]
-            });
-
             // Contenedor principal
             Ext.create('Ext.container.Viewport', {
                 layout: 'vbox',
                 items: [
-                    buttonsPanel,
                     grid,
                     formPanel
                 ]
