@@ -10,6 +10,7 @@ class Trabajador extends Model
     use HasFactory;
 
     protected $table = 'prueba.trabajador';
+    protected $primaryKey = 'tra_ide';
 
     protected $fillable = [
         'tra_cod',
@@ -20,8 +21,13 @@ class Trabajador extends Model
     ];
 
     // Los atributos que deberían ser ocultos para los arreglos.
-    protected $hidden = [];
+    protected $hidden = ['est_ado'];
 
     // Los atributos que deberían ser cast a tipos específicos.
     protected $casts = [];
+
+    public function scopeActivo($query)
+    {
+        return $query->where('est_ado', 1);
+    }
 }
