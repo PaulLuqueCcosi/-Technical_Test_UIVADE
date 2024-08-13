@@ -18,6 +18,7 @@ class TrabajadorController extends Controller
             $trabajadores = Trabajador::activo()->get();
             return response()->json([
                 'data' => $trabajadores,
+                'success'=>true,
                 'message' => 'Trabajadores recuperados correctamente.'
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
@@ -63,6 +64,7 @@ class TrabajadorController extends Controller
             $trabajador = Trabajador::create($validator->validated());
             return response()->json([
                 'data' => $trabajador,
+                "success"=>true, // note this is Boolean, not string
                 'message' => 'Trabajador creado correctamente.'
             ], Response::HTTP_CREATED);
         } catch (QueryException $e) {
@@ -87,6 +89,7 @@ class TrabajadorController extends Controller
 
             return response()->json([
                 'data' => $trabajador,
+                'success'=>true,
                 'message' => 'Trabajador eliminado correctamente.'
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
@@ -139,6 +142,7 @@ class TrabajadorController extends Controller
 
             return response()->json([
                 'data' => $trabajador,
+                'success'=>true,
                 'message' => 'Trabajador actualizado correctamente.'
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
@@ -160,6 +164,7 @@ class TrabajadorController extends Controller
             $trabajador = Trabajador::activo()->findOrFail($id);
             return response()->json([
                 'data' => $trabajador,
+                'success'=>true,
                 'message' => 'Trabajador recuperado correctamente.'
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
