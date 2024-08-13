@@ -12,19 +12,41 @@ use Illuminate\Database\QueryException;
 
 class TrabajadorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $trabajadores = Trabajador::activo()->get();
+            $query = Trabajador::query();
+
+            // Filtrado
+            if ($request->has('filter')) {
+                $filter = $request->input('filter');
+                $query->where(function ($q) use ($filter) {
+                    $q->where('tra_nom', 'like', "%{$filter}%")
+                        ->orWhere('tra_pat', 'like', "%{$filter}%")
+                        ->orWhere('tra_mat', 'like', "%{$filter}%");
+                });
+            }
+
+            // Paginación
+            $page = $request->input('page', 1);
+            $perPage = $request->input('perPage', 5);
+            $trabajadores = $query->paginate($perPage, ['*'], 'page', $page);
+
             return response()->json([
-                'data' => $trabajadores,
-                'success'=>true,
+                'data' => $trabajadores->items(),
+                'meta' => [
+                    'total' => $trabajadores->total(),
+                    'per_page' => $trabajadores->perPage(),
+                    'current_page' => $trabajadores->currentPage(),
+                    'last_page' => $trabajadores->lastPage(),
+                ],
+                'success' => true,
                 'message' => 'Trabajadores recuperados correctamente.'
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error interno del servidor',
-                'message' => 'Ocurrió un error inesperado al recuperar los Trabajadores. Por favor, intenta nuevamente más tarde.'
+                'message' => 'Ocurrió un error inesperado al recuperar los trabajadores. Por favor, intenta nuevamente más tarde.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -64,7 +86,7 @@ class TrabajadorController extends Controller
             $trabajador = Trabajador::create($validator->validated());
             return response()->json([
                 'data' => $trabajador,
-                "success"=>true, // note this is Boolean, not string
+                "success" => true, // note this is Boolean, not string
                 'message' => 'Trabajador creado correctamente.'
             ], Response::HTTP_CREATED);
         } catch (QueryException $e) {
@@ -89,7 +111,7 @@ class TrabajadorController extends Controller
 
             return response()->json([
                 'data' => $trabajador,
-                'success'=>true,
+                'success' => true,
                 'message' => 'Trabajador eliminado correctamente.'
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
@@ -142,7 +164,7 @@ class TrabajadorController extends Controller
 
             return response()->json([
                 'data' => $trabajador,
-                'success'=>true,
+                'success' => true,
                 'message' => 'Trabajador actualizado correctamente.'
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
@@ -164,7 +186,7 @@ class TrabajadorController extends Controller
             $trabajador = Trabajador::activo()->findOrFail($id);
             return response()->json([
                 'data' => $trabajador,
-                'success'=>true,
+                'success' => true,
                 'message' => 'Trabajador recuperado correctamente.'
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
