@@ -36,7 +36,7 @@ class TrabajadorController extends Controller
                 'tra_cod' => [
                     'required',
                     function ($attribute, $value, $fail) {
-                        if (!is_integer($value) || $value <= 0) {
+                        if (!is_numeric($value) || intval($value) <= 0) {
                             $fail("The tra_cod must be an integer value.");
                         } else {
 
@@ -107,7 +107,7 @@ class TrabajadorController extends Controller
         $validator = Validator::make($request->all(), [
             'tra_cod' => [
                 function ($attribute, $value, $fail) use ($id) {
-                    if (!is_integer($value) || $value <= 0) {
+                    if (!is_numeric($value) || intval($value) <= 0) {
                         $fail("The tra_cod must be an integer value.");
                     } else {
 
