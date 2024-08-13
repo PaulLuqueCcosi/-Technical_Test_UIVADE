@@ -7,12 +7,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 
 class TrabajadorController extends Controller
 {
     public function index()
     {
-        $trabajadores = Trabajador::where('est_ado', 1)->get();
+        $trabajadores = Trabajador::activo()->get();
         $data = [
             'data' => $trabajadores
         ];
@@ -22,7 +23,17 @@ class TrabajadorController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'tra_cod' => 'required|integer',
+            'tra_cod' => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    // Verifica si hay un registro activo con el mismo código
+                    $exists = Trabajador::activo()->where('tra_cod', $value)->exists();
+                    if ($exists) {
+                        $fail('The ' . $attribute . ' has already been taken.');
+                    };
+                },
+            ],
             'tra_nom' => 'required|string|max:200',
             'tra_pat' => 'required|string|max:200',
             'tra_mat' => 'required|string|max:200',
@@ -31,10 +42,12 @@ class TrabajadorController extends Controller
         if ($validator->fails()) {
             $data = [
                 'error' => $validator->errors(),
-                'message' => 'Error in create Trabajador',
+                'message' => 'Validation error in create Trabajador',
             ];
             return response()->json($data, Response::HTTP_BAD_REQUEST);
         }
+        ;
+
 
         $trabajador = Trabajador::create($validator->validated());
 
@@ -43,9 +56,14 @@ class TrabajadorController extends Controller
                 'message' => 'Error in create Trabajador',
             ];
             return response()->json($data, Response::HTTP_INTERNAL_SERVER_ERROR);
-
         }
-        return response()->json($trabajador, Response::HTTP_CREATED);
+
+        $data = [
+            'data' => $trabajador,
+            'message' => 'Create Trabajador',
+        ];
+
+        return response()->json($data, Response::HTTP_CREATED);
 
     }
 
