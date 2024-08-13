@@ -105,15 +105,45 @@
                     { text: 'Apellido Paterno', dataIndex: 'tra_pat', flex: 2 },
                     { text: 'Apellido Materno', dataIndex: 'tra_mat', flex: 2 }
                 ],
-                tbar: [{
-                    xtype: 'button',
-                    text: 'Nuevo Trabajador',
-                    handler: function () {
-                        formPanel.getForm().reset();
-                        formPanel.setTitle('Nuevo Trabajador');
-                        formPanel.show();
+                tbar: [
+                    {
+                        xtype: 'button',
+                        text: 'Nuevo Trabajador',
+                        handler: function () {
+                            formPanel.getForm().reset();
+                            formPanel.setTitle('Nuevo Trabajador');
+                            formPanel.show();
+                        }
+                    },
+                    {
+                        xtype: 'button',
+                        text: 'Eliminar Trabajador',
+                        handler: function () {
+                            var record = grid.getSelectionModel().getSelection()[0];
+                            if (record) {
+                                Ext.Msg.confirm('Eliminar Trabajador',
+                                    '¿Está seguro de que desea eliminar este trabajador?',
+                                    function (button) {
+                                        if (button === 'yes') {
+                                            Ext.Ajax.request({
+                                                url: '/api/trabajadores/' + record.get('tra_ide'),
+                                                method: 'DELETE',
+                                                success: function () {
+                                                    trabajadorStore.load();
+                                                },
+                                                failure: function () {
+                                                    Ext.Msg.alert('Error', 'No se pudo eliminar el trabajador.');
+                                                }
+                                            });
+                                        }
+                                    }
+                                );
+                            } else {
+                                Ext.Msg.alert('Error', 'Seleccione un trabajador para eliminar.');
+                            }
+                        }
                     }
-                }],
+                ],
                 height: 400,
                 width: 600,
                 listeners: {
