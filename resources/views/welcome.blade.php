@@ -65,7 +65,7 @@
                                 var values = form.getValues();
                                 // Convierte 'tra_cod' a entero
                                 values.tra_cod = parseInt(values.tra_cod, 10);
-                                var url = form.isValid() ? (values.tra_ide ? '/api/trabajadores/' + values.tra_ide : '/api/trabajadores') : '';
+                                var url = values.tra_ide ? '/api/trabajadores/' + values.tra_ide : '/api/trabajadores';
                                 var method = values.tra_ide ? 'PUT' : 'POST';
 
                                 form.submit({
@@ -106,6 +106,16 @@
                     { text: 'Apellido Paterno', dataIndex: 'tra_pat', flex: 2 },
                     { text: 'Apellido Materno', dataIndex: 'tra_mat', flex: 2 }
                 ],
+                tbar: [{
+                    text: 'Nuevo Trabajador',
+                    action: 'add',
+                    handler: function () {
+                        // Resetea el formulario y lo muestra para agregar un nuevo trabajador
+                        formPanel.getForm().reset();
+                        formPanel.setTitle('Nuevo Trabajador');
+                        formPanel.show();
+                    }
+                }],
                 height: 400,
                 width: 600,
                 listeners: {
@@ -150,17 +160,24 @@
                         handler: function () {
                             var record = grid.getSelectionModel().getSelection()[0];
                             if (record) {
-                                Ext.Ajax.request({
-                                    url: '/api/trabajadores/' + record.get('tra_ide'),
-                                    method: 'PUT',
-                                    jsonData: { est_ado: 1 },
-                                    success: function () {
-                                        trabajadorStore.load();
-                                    },
-                                    failure: function () {
-                                        Ext.Msg.alert('Error', 'No se pudo eliminar el trabajador.');
+                                Ext.Msg.confirm('Eliminar Trabajador',
+                                    '¿Está seguro de que desea eliminar este trabajador?',
+                                    function (button) {
+                                        if (button === 'yes') {
+                                            Ext.Ajax.request({
+                                                url: '/api/trabajadores/' + record.get('tra_ide'),
+                                                method: 'PUT',
+                                                jsonData: { est_ado: 1 }, // Cambia el estado a eliminado
+                                                success: function () {
+                                                    trabajadorStore.load();
+                                                },
+                                                failure: function () {
+                                                    Ext.Msg.alert('Error', 'No se pudo eliminar el trabajador.');
+                                                }
+                                            });
+                                        }
                                     }
-                                });
+                                );
                             } else {
                                 Ext.Msg.alert('Error', 'Seleccione un trabajador para eliminar.');
                             }
