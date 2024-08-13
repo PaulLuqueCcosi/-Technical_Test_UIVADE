@@ -104,4 +104,69 @@ class TrabajadorController extends Controller
         }
     }
 
+    public function update(Request $request, $id)
+    {
+
+        // Validar los datos de entrada
+        $validator = Validator::make($request->all(), [
+            'tra_cod' => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) use ($id) {
+                    // Verifica si el código ya está en uso por otro trabajador activo
+                    $exists = Trabajador::activo()->where('tra_cod', $value)->where('tra_ide', '<>', $id)->exists();
+                    if ($exists) {
+                        $fail('The ' . $attribute . ' has already been taken by another active trabajador.');
+                    }
+                },
+            ],
+            'tra_nom' => 'required|string|max:200',
+            'tra_pat' => 'required|string|max:200',
+            'tra_mat' => 'required|string|max:200',
+        ]);
+
+        if ($validator->fails()) {
+            $data = [
+                'error' => $validator->errors(),
+                'message' => 'Validation error in update Trabajador',
+            ];
+            return response()->json($data, Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            // Buscar el trabajador por ID
+            $trabajador = Trabajador::findOrFail($id);
+
+            // Verificar si el trabajador está eliminado (estado = 0)
+            if ($trabajador->est_ado === 0) {
+                $data = [
+                    'message' => 'El Trabajador ha sido eliminado anteriormente y no puede ser actualizado.',
+                ];
+                return response()->json($data, Response::HTTP_FORBIDDEN);
+            }
+
+            // Actualizar los datos del trabajador
+            $trabajador->update($validator->validated());
+
+            $data = [
+                'data' => $trabajador,
+                'message' => 'Trabajador actualizado correctamente.',
+            ];
+            return response()->json($data, Response::HTTP_OK);
+
+        } catch (ModelNotFoundException $e) {
+            $data = [
+                'error' => 'Trabajador no encontrado.',
+                'message' => 'Error en la actualización del Trabajador.',
+            ];
+            return response()->json($data, Response::HTTP_NOT_FOUND);
+        } catch (\Exception $e) {
+            $data = [
+                'error' => $e->getMessage(),
+                'message' => 'Error en la actualización del Trabajador.',
+            ];
+            return response()->json($data, Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
