@@ -36,14 +36,25 @@
                     reader: {
                         type: 'json',
                         root: 'data',
-                        totalProperty: 'meta.total' // Asegúrate de ajustar esto según la respuesta de la API
+                        totalProperty: 'meta.total'
                     },
                     writer: {
                         type: 'json',
                         writeAllFields: true
+                    },
+                    extraParams: {
+                        filter: '', // Parámetro de filtro inicial
+                        page: 1,
+                        // limit: 10
                     }
                 },
-                filters: [], // Aquí se almacenarán los filtros aplicados
+                listeners: {
+                    load: function (store, records, successful, operation) {
+                        if (successful) {
+                            store.totalCount = store.getProxy().getReader().rawData.meta.total;
+                        }
+                    }
+                }
             });
 
             // Panel de formulario
@@ -110,24 +121,7 @@
                     { text: 'Apellido Materno', dataIndex: 'tra_mat', flex: 2 }
                 ],
                 tbar: [
-                    {
-                        xtype: 'textfield',
-                        emptyText: 'Buscar...',
-                        listeners: {
-                            change: function (field, newValue) {
-                                trabajadorStore.clearFilter(); // Limpiar filtros anteriores
-                                if (newValue) {
-                                    trabajadorStore.filter({
-                                        filterFn: function (record) {
-                                            return record.get('tra_nom').toLowerCase().includes(newValue.toLowerCase()) ||
-                                                record.get('tra_pat').toLowerCase().includes(newValue.toLowerCase()) ||
-                                                record.get('tra_mat').toLowerCase().includes(newValue.toLowerCase());
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                    },
+
                     {
                         xtype: 'button',
                         text: 'Nuevo Trabajador',
