@@ -1,6 +1,8 @@
 // Grid para mostrar los trabajadores
 Ext.create('Ext.grid.Panel', {
     title: 'Lista de Trabajadores',
+    alias: 'widget.trabajadorlist', // Alias para usar en el controlador
+
     store: trabajadorStore,
     columns: [
         { text: 'ID', dataIndex: 'tra_ide', flex: 1 },

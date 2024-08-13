@@ -22,40 +22,18 @@ Ext.define('MyApp.controller.Trabajadores', {
     },
 
     addTrabajador: function () {
-        var view = Ext.widget('trabajadoredit');
-        view.down('form').getForm().reset();
+        Ext.Msg.alert('Agregar Trabajador', 'Botón "Agregar" presionado. Se debería abrir el formulario para agregar un nuevo trabajador.');
     },
 
     editTrabajador: function (button) {
-        var grid = button.up('grid'),
-            record = grid.getSelectionModel().getSelection()[0];
-        if (record) {
-            var view = Ext.widget('trabajadoredit');
-            view.down('form').loadRecord(record);
-        }
+        Ext.Msg.alert('Editar Trabajador', 'Botón "Editar" presionado. Se debería abrir el formulario con los datos del trabajador seleccionado.');
     },
 
     updateTrabajador: function (button) {
-        var win = button.up('window'),
-            form = win.down('form').getForm(),
-            record = form.getRecord(),
-            values = form.getValues();
-
-        if (record) {
-            record.set(values);
-        } else {
-            this.getTrabajadoresStore().add(values);
-        }
-        win.close();
+        Ext.Msg.alert('Guardar Trabajador', 'Botón "Guardar" presionado. Se deberían guardar los cambios del trabajador.');
     },
 
     deleteTrabajador: function (button) {
-        var grid = button.up('grid'),
-            record = grid.getSelectionModel().getSelection()[0];
-
-        if (record) {
-            record.set('est_ado', 0); // Cambia el estado a 0 para eliminación lógica
-            this.getTrabajadoresStore().sync();
-        }
+        Ext.Msg.alert('Eliminar Trabajador', 'Botón "Eliminar" presionado. Se debería cambiar el estado del trabajador a eliminado.');
     }
 });
