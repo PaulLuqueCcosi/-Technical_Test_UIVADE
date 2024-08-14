@@ -129,6 +129,8 @@
                         text: 'Cerrar',
                         handler: function () {
                             panel2.hide(); // Aquí se oculta el panel2
+                            formularioVenta.getForm().reset();
+                            formularioDetalleVenta.getForm().reset();
                         }
                     }
                 ],
@@ -157,7 +159,7 @@
                             var form = formularioDetalleVenta.getForm();
                             if (form.isValid()) {
                                 var values = form.getValues();
-                                var url = values.v_d_ide ? '/api/ventas/detalles/' + values.v_d_ide : '/api/ventas/' + values.ven_ide + '/detalles';
+                                var url = values.v_d_ide ? '/api/ventas/' + values.ven_ide + '/detalles/' + values.v_d_ide : '/api/ventas/' + values.ven_ide + '/detalles';
                                 var method = values.v_d_ide ? 'PUT' : 'POST';
 
                                 form.submit({
@@ -221,6 +223,18 @@
                         }
                     },
                     {
+                        text: 'Modificar',
+                        handler: function () {
+                            var record = gridCabeceraVentas.getSelectionModel().getSelection()[0];
+                            if (record) {
+                                formularioVenta.getForm().loadRecord(record); // Carga el registro en el formulario
+                                panel2.show(); // Muestra el panel de formularios
+                            } else {
+                                Ext.Msg.alert('Error', 'Seleccione una venta para modificar.');
+                            }
+                        }
+                    },
+                    {
                         text: 'Eliminar',
                         handler: function () {
                             var record = gridCabeceraVentas.getSelectionModel().getSelection()[0];
@@ -268,6 +282,57 @@
                     store: ventaDetalleStore,
                     displayInfo: true
                 },
+                tbar: [
+                    {
+                        text: 'Nuevo Detalle',
+                        handler: function () {
+                            panel2.show();
+                            formularioDetalleVenta.show();
+                            formularioDetalleVenta.getForm().reset(); // Limpiar el formulario
+                        }
+                    },
+                    {
+                        text: 'Modificar Detalle',
+                        handler: function () {
+                            var record = gridDetallesVentas.getSelectionModel().getSelection()[0];
+                            if (record) {
+                                formularioDetalleVenta.loadRecord(record);
+                                formularioVenta.loadRecord(gridCabeceraVentas.getSelectionModel().getSelection()[0]);
+                                panel2.show();
+                                formularioDetalleVenta.show();
+                            } else {
+                                Ext.Msg.alert('Error', 'Seleccione un detalle de venta para modificar.');
+                            }
+                        }
+                    },
+                    {
+                        text: 'Eliminar Detalle',
+                        handler: function () {
+                            var record = gridDetallesVentas.getSelectionModel().getSelection()[0];
+                            if (record) {
+                                Ext.Msg.confirm('Eliminar Detalle',
+                                    '¿Está seguro de que desea eliminar este detalle de venta?',
+                                    function (button) {
+                                        if (button === 'yes') {
+                                            Ext.Ajax.request({
+                                                url: '/api/ventas/detalles/' + record.get('v_d_ide'),
+                                                method: 'DELETE',
+                                                success: function () {
+                                                    ventaDetalleStore.load();
+                                                },
+                                                failure: function () {
+                                                    Ext.Msg.alert('Error', 'No se pudo eliminar el detalle de la venta.');
+                                                }
+                                            });
+                                        }
+                                    }
+                                );
+                            } else {
+                                Ext.Msg.alert('Error', 'Seleccione un detalle de venta para eliminar.');
+                            }
+                        }
+                    }
+                ],
                 height: 350,
                 width: '100%'
             });
