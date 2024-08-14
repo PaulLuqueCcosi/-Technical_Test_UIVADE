@@ -185,6 +185,92 @@
                 ]
             });
 
+            // grillas
+            // Definición del grid para la Cabecera de Ventas
+            var gridCabeceraVentas = Ext.create('Ext.grid.Panel', {
+                title: 'Cabecera de Ventas',
+                store: ventaStore,
+                columns: [
+                    { text: 'ID', dataIndex: 'ven_ide', flex: 1 },
+                    { text: 'Serie', dataIndex: 'ven_ser', flex: 1 },
+                    { text: 'Número', dataIndex: 'ven_num', flex: 1 },
+                    { text: 'Cliente', dataIndex: 'ven_cli', flex: 2 },
+                    { text: 'Monto', dataIndex: 'ven_mon', flex: 1 }
+                ],
+                height: 350,
+                width: '100%',
+                listeners: {
+                    selectionchange: function (selModel, selected) {
+                        var selectedVenta = selected[0];
+                        if (selectedVenta) {
+                            ventaDetalleStore.getProxy().url = '/api/ventas/' + selectedVenta.get('ven_ide') + '/detalles';
+                            ventaDetalleStore.load();
+                        }
+                    }
+                },
+                bbar: {
+                    xtype: 'pagingtoolbar',
+                    store: ventaStore,
+                    displayInfo: true
+                },
+                tbar: [
+                    {
+                        text: 'Nuevo',
+                        handler: function () {
+                            panel2.show();
+                        }
+                    },
+                    {
+                        text: 'Eliminar',
+                        handler: function () {
+                            var record = gridCabeceraVentas.getSelectionModel().getSelection()[0];
+                            if (record) {
+                                Ext.Msg.confirm('Eliminar Venta',
+                                    '¿Está seguro de que desea eliminar esta venta?',
+                                    function (button) {
+                                        if (button === 'yes') {
+                                            Ext.Ajax.request({
+                                                url: '/api/ventas/' + record.get('ven_ide'),
+                                                method: 'DELETE',
+                                                success: function () {
+                                                    ventaStore.load();
+                                                    ventaDetalleStore.load();
+                                                },
+                                                failure: function () {
+                                                    Ext.Msg.alert('Error', 'No se pudo eliminar la venta.');
+                                                }
+                                            });
+                                        }
+                                    }
+                                );
+                            } else {
+                                Ext.Msg.alert('Error', 'Seleccione una venta para eliminar.');
+                            }
+                        }
+                    }
+                ]
+            });
+
+            // Definición del grid para los Detalles de Venta
+            var gridDetallesVentas = Ext.create('Ext.grid.Panel', {
+                title: 'Detalles de Venta',
+                store: ventaDetalleStore,
+                columns: [
+                    { text: 'ID', dataIndex: 'v_d_ide', flex: 1 },
+                    { text: 'ID - Venta', dataIndex: 'ven_ide', flex: 1 },
+                    { text: 'Producto', dataIndex: 'v_d_pro', flex: 2 },
+                    { text: 'Unidad', dataIndex: 'v_d_uni', flex: 1 },
+                    { text: 'Cantidad', dataIndex: 'v_d_can', flex: 1 },
+                    { text: 'Total', dataIndex: 'v_d_tot', flex: 1 }
+                ],
+                bbar: {
+                    xtype: 'pagingtoolbar',
+                    store: ventaDetalleStore,
+                    displayInfo: true
+                },
+                height: 350,
+                width: '100%'
+            });
 
             // Paneles
             var panel1 = Ext.create('Ext.panel.Panel', {
@@ -193,91 +279,8 @@
                 height: 700,
                 layout: 'vbox',
                 items: [
-                    {
-                        xtype: 'grid',
-                        title: 'Cabecera de Ventas',
-                        store: ventaStore,
-                        columns: [
-                            { text: 'ID', dataIndex: 'ven_ide', flex: 1 },
-                            { text: 'Serie', dataIndex: 'ven_ser', flex: 1 },
-                            { text: 'Número', dataIndex: 'ven_num', flex: 1 },
-                            { text: 'Cliente', dataIndex: 'ven_cli', flex: 2 },
-                            { text: 'Monto', dataIndex: 'ven_mon', flex: 1 }
-                        ],
-                        height: 350,
-                        width: '100%',
-                        listeners: {
-                            selectionchange: function (selModel, selected) {
-                                var selectedVenta = selected[0];
-                                if (selectedVenta) {
-                                    ventaDetalleStore.getProxy().url = '/api/ventas/' + selectedVenta.get('ven_ide') + '/detalles';
-                                    // ventaDetalleStore.getProxy().read();
-                                    ventaDetalleStore.load();
-                                }
-                            }
-                        },
-                        bbar: {
-                            xtype: 'pagingtoolbar',
-                            store: ventaStore,
-                            displayInfo: true
-                        },
-                        tbar: [
-                            {
-                                text: 'Nuevo',
-                                handler: function () {
-                                    panel2.show();
-                                }
-                            },
-                            {
-                                text: 'Eliminar',
-                                handler: function () {
-                                    var record = getSelectionModel().getSelection()[0];
-                                    if (record) {
-                                        Ext.Msg.confirm('Eliminar Venta',
-                                            '¿Está seguro de que desea eliminar esta venta?',
-                                            function (button) {
-                                                if (button === 'yes') {
-                                                    Ext.Ajax.request({
-                                                        url: '/api/ventas/' + record.get('ven_ide'),
-                                                        method: 'DELETE',
-                                                        success: function () {
-                                                            ventaStore.load();
-                                                        },
-                                                        failure: function () {
-                                                            Ext.Msg.alert('Error', 'No se pudo eliminar la venta.');
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        );
-                                    } else {
-                                        Ext.Msg.alert('Error', 'Seleccione una venta para eliminar.');
-                                    }
-                                }
-                            }
-                        ]
-
-                    },
-                    {
-                        xtype: 'grid',
-                        title: 'Detalles de Venta',
-                        store: ventaDetalleStore,
-                        columns: [
-                            { text: 'ID', dataIndex: 'v_d_ide', flex: 1 },
-                            { text: 'ID - Venta', dataIndex: 'ven_ide', flex: 1 },
-                            { text: 'Producto', dataIndex: 'v_d_pro', flex: 2 },
-                            { text: 'Unidad', dataIndex: 'v_d_uni', flex: 1 },
-                            { text: 'Cantidad', dataIndex: 'v_d_can', flex: 1 },
-                            { text: 'Total', dataIndex: 'v_d_tot', flex: 1 }
-                        ],
-                        bbar: {
-                            xtype: 'pagingtoolbar',
-                            store: ventaDetalleStore,
-                            displayInfo: true
-                        },
-                        height: 350,
-                        width: '100%'
-                    }
+                    gridCabeceraVentas,
+                    gridDetallesVentas
                 ]
             });
 
@@ -303,7 +306,6 @@
                 items: [
                     panel1,
                     panel2,
-                    // gridCabecera
                 ]
             });
         });
