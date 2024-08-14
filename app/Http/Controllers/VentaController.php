@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -112,7 +113,17 @@ class VentaController extends Controller
     {
         try {
             $venta = Venta::activo()->findOrFail($id);
+            // Iniciar la transacción para asegurar consistencia en la base de datos
+            DB::beginTransaction();
+
+            // Marcar la venta como eliminada lógicamente
             $venta->update(['est_ado' => 0]);
+
+            // Marcar lógicamente todos los detalles de la venta como eliminados
+            $venta->detalles()->update(['est_ado' => 0]);
+
+            // Confirmar la transacción
+            DB::commit();
 
             return response()->json([
                 'data' => $venta,
