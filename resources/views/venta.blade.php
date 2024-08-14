@@ -79,11 +79,118 @@
                 }
             });
 
+            // formualrio
+            var formularioVenta = Ext.create('Ext.form.Panel', {
+                title: 'Formulario de Venta',
+                width: "100%",
+                bodyPadding: 10,
+                defaultType: 'textfield',
+                items: [
+                    { name: 'ven_ide', xtype: 'hidden' },
+                    { fieldLabel: 'Serie', name: 'ven_ser' },
+                    { fieldLabel: 'Número', name: 'ven_num' },
+                    { fieldLabel: 'Cliente', name: 'ven_cli' },
+                    { fieldLabel: 'Monto', name: 'ven_mon', xtype: 'numberfield', decimalPrecision: 2 }
+                ],
+                buttons: [
+                    {
+                        text: 'Guardar',
+                        formBind: true,
+                        handler: function () {
+                            var form = formularioVenta.getForm();
+                            if (form.isValid()) {
+                                var values = form.getValues();
+                                var url = values.ven_ide ? '/api/ventas/' + values.ven_ide : '/api/ventas';
+                                var method = values.ven_ide ? 'PUT' : 'POST';
+
+                                form.submit({
+                                    url: url,
+                                    method: method,
+                                    success: function () {
+                                        ventaStore.load();
+                                        formularioVenta.reset();
+                                        formularioVenta.hide();
+                                    },
+                                    failure: function (form, action) {
+                                        Ext.Msg.alert('Error', action.result.message || 'No se pudo guardar la venta.');
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    {
+                        text: 'Cancelar',
+                        handler: function () {
+                            formularioVenta.getForm().reset();
+                            // panel2.hide();
+                        }
+                    },
+                    {
+                        text: 'Cerrar',
+                        handler: function () {
+                            panel2.hide(); // Aquí se oculta el panel2
+                        }
+                    }
+                ],
+                // hidden: true
+            });
+
+            // Formulario de Detalle de Venta
+            var formularioDetalleVenta = Ext.create('Ext.form.Panel', {
+                title: 'Formulario de Detalle de Venta',
+                width: "100%",
+                bodyPadding: 10,
+                defaultType: 'textfield',
+                items: [
+                    { name: 'v_d_ide', xtype: 'hidden' },
+                    { name: 'ven_ide', xtype: 'hidden' }, // ID de la venta asociado
+                    { fieldLabel: 'Producto', name: 'v_d_pro' },
+                    { fieldLabel: 'Unidad', name: 'v_d_uni', xtype: 'numberfield', decimalPrecision: 2 },
+                    { fieldLabel: 'Cantidad', name: 'v_d_can', xtype: 'numberfield', decimalPrecision: 2 },
+                    { fieldLabel: 'Total', name: 'v_d_tot', xtype: 'numberfield', decimalPrecision: 2 }
+                ],
+                buttons: [
+                    {
+                        text: 'Guardar',
+                        formBind: true,
+                        handler: function () {
+                            var form = formularioDetalleVenta.getForm();
+                            if (form.isValid()) {
+                                var values = form.getValues();
+                                var url = values.v_d_ide ? '/api/ventas/detalles/' + values.v_d_ide : '/api/ventas/' + values.ven_ide + '/detalles';
+                                var method = values.v_d_ide ? 'PUT' : 'POST';
+
+                                form.submit({
+                                    url: url,
+                                    method: method,
+                                    success: function () {
+                                        ventaDetalleStore.load();
+                                        formularioDetalleVenta.reset();
+                                        formularioDetalleVenta.hide();
+                                    },
+                                    failure: function (form, action) {
+                                        Ext.Msg.alert('Error', action.result.message || 'No se pudo guardar el detalle de la venta.');
+                                    }
+                                });
+                            }
+                        }
+                    },
+                    {
+                        text: 'Cancelar',
+                        handler: function () {
+                            formularioDetalleVenta.getForm().reset();
+                            panel3.hide();
+                        }
+                    }
+                ]
+            });
+
+
             // Paneles
             var panel1 = Ext.create('Ext.panel.Panel', {
                 title: 'Ventas',
-                width: 800,
-                height: 400,
+                width: 700,
+                height: 700,
                 layout: 'vbox',
                 items: [
                     {
@@ -97,13 +204,13 @@
                             { text: 'Cliente', dataIndex: 'ven_cli', flex: 2 },
                             { text: 'Monto', dataIndex: 'ven_mon', flex: 1 }
                         ],
-                        height: 200,
+                        height: 350,
                         width: '100%',
                         listeners: {
                             selectionchange: function (selModel, selected) {
                                 var selectedVenta = selected[0];
                                 if (selectedVenta) {
-                                    ventaDetalleStore.getProxy().url = '/api/ventas/' + selectedVenta.get('ven_ide')+'/detalles';
+                                    ventaDetalleStore.getProxy().url = '/api/ventas/' + selectedVenta.get('ven_ide') + '/detalles';
                                     // ventaDetalleStore.getProxy().read();
                                     ventaDetalleStore.load();
                                 }
@@ -114,6 +221,41 @@
                             store: ventaStore,
                             displayInfo: true
                         },
+                        tbar: [
+                            {
+                                text: 'Nuevo',
+                                handler: function () {
+                                    panel2.show();
+                                }
+                            },
+                            {
+                                text: 'Eliminar',
+                                handler: function () {
+                                    var record = getSelectionModel().getSelection()[0];
+                                    if (record) {
+                                        Ext.Msg.confirm('Eliminar Venta',
+                                            '¿Está seguro de que desea eliminar esta venta?',
+                                            function (button) {
+                                                if (button === 'yes') {
+                                                    Ext.Ajax.request({
+                                                        url: '/api/ventas/' + record.get('ven_ide'),
+                                                        method: 'DELETE',
+                                                        success: function () {
+                                                            ventaStore.load();
+                                                        },
+                                                        failure: function () {
+                                                            Ext.Msg.alert('Error', 'No se pudo eliminar la venta.');
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        );
+                                    } else {
+                                        Ext.Msg.alert('Error', 'Seleccione una venta para eliminar.');
+                                    }
+                                }
+                            }
+                        ]
 
                     },
                     {
@@ -133,123 +275,35 @@
                             store: ventaDetalleStore,
                             displayInfo: true
                         },
-                        height: 150,
+                        height: 350,
                         width: '100%'
                     }
                 ]
             });
 
-            var panel2 = Ext.create('Ext.form.Panel', {
-                title: 'Formulario de Venta',
-                width: 800,
-                bodyPadding: 10,
-                defaultType: 'textfield',
-                items: [
-                    { name: 'ven_ide', xtype: 'hidden' },
-                    { fieldLabel: 'Serie', name: 'ven_ser' },
-                    { fieldLabel: 'Número', name: 'ven_num' },
-                    { fieldLabel: 'Cliente', name: 'ven_cli' },
-                    { fieldLabel: 'Monto', name: 'ven_mon', xtype: 'numberfield', decimalPrecision: 2 }
-                ],
-                buttons: [
-                    {
-                        text: 'Guardar',
-                        formBind: true,
-                        handler: function () {
-                            var form = panel2.getForm();
-                            if (form.isValid()) {
-                                var values = form.getValues();
-                                var url = values.ven_ide ? '/api/ventas/' + values.ven_ide : '/api/ventas';
-                                var method = values.ven_ide ? 'PUT' : 'POST';
-
-                                form.submit({
-                                    url: url,
-                                    method: method,
-                                    success: function () {
-                                        ventaStore.load();
-                                        panel2.reset();
-                                        panel2.hide();
-                                    },
-                                    failure: function (form, action) {
-                                        Ext.Msg.alert('Error', action.result.message || 'No se pudo guardar la venta.');
-                                    }
-                                });
-                            }
-                        }
-                    },
-                    {
-                        text: 'Cancelar',
-                        handler: function () {
-                            panel2.reset();
-                            panel2.hide();
-                        }
-                    }
-                ],
-                hidden: true
-            });
-
-            // Grid y Panel de detalle
-            var gridCabecera = Ext.create('Ext.grid.Panel', {
-                title: 'Cabecera de Ventas',
-                store: ventaStore,
-                columns: [
-                    { text: 'ID', dataIndex: 'ven_ide', flex: 1 },
-                    { text: 'Serie', dataIndex: 'ven_ser', flex: 1 },
-                    { text: 'Número', dataIndex: 'ven_num', flex: 1 },
-                    { text: 'Cliente', dataIndex: 'ven_cli', flex: 2 },
-                    { text: 'Monto', dataIndex: 'ven_mon', flex: 1 }
-                ],
-                tbar: [
-                    {
-                        text: 'Nuevo',
-                        handler: function () {
-                            panel2.show();
-                        }
-                    },
-                    {
-                        text: 'Eliminar',
-                        handler: function () {
-                            var record = gridCabecera.getSelectionModel().getSelection()[0];
-                            if (record) {
-                                Ext.Msg.confirm('Eliminar Venta',
-                                    '¿Está seguro de que desea eliminar esta venta?',
-                                    function (button) {
-                                        if (button === 'yes') {
-                                            Ext.Ajax.request({
-                                                url: '/api/ventas/' + record.get('ven_ide'),
-                                                method: 'DELETE',
-                                                success: function () {
-                                                    ventaStore.load();
-                                                },
-                                                failure: function () {
-                                                    Ext.Msg.alert('Error', 'No se pudo eliminar la venta.');
-                                                }
-                                            });
-                                        }
-                                    }
-                                );
-                            } else {
-                                Ext.Msg.alert('Error', 'Seleccione una venta para eliminar.');
-                            }
-                        }
-                    }
-                ],
-                bbar: {
-                    xtype: 'pagingtoolbar',
-                    store: ventaStore,
-                    displayInfo: true
-                },
+            // Paneles
+            var panel2 = Ext.create('Ext.panel.Panel', {
+                title: 'Formularios',
+                hidden: true,
+                width: 600,
                 height: 400,
-                width: '100%'
+                layout: 'vbox',
+                items: [
+                    formularioVenta,
+                    formularioDetalleVenta
+
+                ]
             });
+
+
 
             // Contenedor principal
             Ext.create('Ext.container.Viewport', {
-                layout: 'vbox',
+                layout: 'hbox',
                 items: [
                     panel1,
                     panel2,
-                    gridCabecera
+                    // gridCabecera
                 ]
             });
         });
