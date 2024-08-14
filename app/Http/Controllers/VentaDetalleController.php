@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VentaDetalle;
+use App\Models\Venta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -91,6 +92,16 @@ class VentaDetalleController extends Controller
     // Crear un nuevo detalle para una venta específica
     public function store(Request $request, $venta_id)
     {
+        // Validar la existencia y estado activo de la venta
+        $venta = Venta::activo()->find($venta_id);
+
+        if (!$venta) {
+            return response()->json([
+                'error' => 'Venta no encontrada o inactiva.',
+                'message' => 'El venta_id de venta proporcionado no corresponde a una venta.'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
         $validator = Validator::make($request->all(), [
             'v_d_pro' => 'required|string',
             'v_d_uni' => 'required|numeric',
@@ -187,6 +198,8 @@ class VentaDetalleController extends Controller
         try {
             $ventaDetalle = VentaDetalle::where('ven_ide', $venta_id)->activo()->findOrFail($id);
             $ventaDetalle->update($validator->validated());
+            $ventaDetalle->refresh();
+
             return response()->json([
                 'data' => $ventaDetalle,
                 'success' => true,
