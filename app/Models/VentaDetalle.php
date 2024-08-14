@@ -35,4 +35,11 @@ class VentaDetalle extends Model
     {
         return $query->where('est_ado', 1);
     }
+    // Alcance global para filtrar por venta activa
+    public function scopeVentaActiva($query)
+    {
+        return $query->whereHas('venta', function ($q) {
+            $q->where('est_ado', 1);
+        });
+    }
 }

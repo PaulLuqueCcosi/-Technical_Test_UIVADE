@@ -17,7 +17,7 @@ class VentaDetalleController extends Controller
     public function indexAll(Request $request)
     {
         try {
-            $query = VentaDetalle::activo();
+            $query = VentaDetalle::activo()->ventaActiva();
 
             // Filtrado
             if ($request->has('filter')) {
