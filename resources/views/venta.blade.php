@@ -147,9 +147,35 @@
                     { name: 'v_d_ide', xtype: 'hidden' },
                     { name: 'ven_ide', xtype: 'hidden' }, // ID de la venta asociado
                     { fieldLabel: 'Producto', name: 'v_d_pro' },
-                    { fieldLabel: 'Unidad', name: 'v_d_uni', xtype: 'numberfield', decimalPrecision: 2 },
-                    { fieldLabel: 'Cantidad', name: 'v_d_can', xtype: 'numberfield', decimalPrecision: 2 },
-                    { fieldLabel: 'Total', name: 'v_d_tot', xtype: 'numberfield', decimalPrecision: 2 }
+                    {
+                        fieldLabel: 'Unidad',
+                        name: 'v_d_uni',
+                        xtype: 'numberfield',
+                        decimalPrecision: 2,
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                actualizarTotal();
+                            }
+                        }
+                    },
+                    {
+                        fieldLabel: 'Cantidad',
+                        name: 'v_d_can',
+                        xtype: 'numberfield',
+                        decimalPrecision: 2,
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                actualizarTotal();
+                            }
+                        }
+                    },
+                    {
+                        fieldLabel: 'Total',
+                        name: 'v_d_tot',
+                        xtype: 'numberfield',
+                        decimalPrecision: 2,
+                        readOnly: true // Campo de solo lectura
+                    }
                 ],
                 buttons: [
                     {
@@ -157,9 +183,10 @@
                         formBind: true,
                         handler: function () {
                             var form = formularioDetalleVenta.getForm();
+                            var id_venta = formularioVenta.getForm().getValues().ven_ide;
                             if (form.isValid()) {
                                 var values = form.getValues();
-                                var url = values.v_d_ide ? '/api/ventas/' + values.ven_ide + '/detalles/' + values.v_d_ide : '/api/ventas/' + values.ven_ide + '/detalles';
+                                var url = values.v_d_ide ? '/api/ventas/' + values.ven_ide + '/detalles/' + values.v_d_ide : '/api/ventas/' + id_venta + '/detalles';
                                 var method = values.v_d_ide ? 'PUT' : 'POST';
 
                                 form.submit({
@@ -167,8 +194,8 @@
                                     method: method,
                                     success: function () {
                                         ventaDetalleStore.load();
-                                        formularioDetalleVenta.reset();
-                                        formularioDetalleVenta.hide();
+                                        formularioDetalleVenta.getForm().reset();
+                                        // formularioDetalleVenta.hide();
                                     },
                                     failure: function (form, action) {
                                         Ext.Msg.alert('Error', action.result.message || 'No se pudo guardar el detalle de la venta.');
@@ -186,6 +213,18 @@
                     }
                 ]
             });
+
+            // Función para actualizar el campo Total
+            function actualizarTotal() {
+                var form = formularioDetalleVenta.getForm();
+                var unidad = form.findField('v_d_uni').getValue();
+                var cantidad = form.findField('v_d_can').getValue();
+
+                var total = unidad * cantidad;
+
+                form.findField('v_d_tot').setValue(total);
+            }
+
 
             // grillas
             // Definición del grid para la Cabecera de Ventas
@@ -205,8 +244,10 @@
                     selectionchange: function (selModel, selected) {
                         var selectedVenta = selected[0];
                         if (selectedVenta) {
+                            formularioVenta.getForm().loadRecord(selectedVenta);
                             ventaDetalleStore.getProxy().url = '/api/ventas/' + selectedVenta.get('ven_ide') + '/detalles';
                             ventaDetalleStore.load();
+
                         }
                     }
                 },
@@ -220,6 +261,7 @@
                         text: 'Nuevo',
                         handler: function () {
                             panel2.show();
+                            formularioVenta.getForm().reset()
                         }
                     },
                     {
@@ -277,6 +319,15 @@
                     { text: 'Cantidad', dataIndex: 'v_d_can', flex: 1 },
                     { text: 'Total', dataIndex: 'v_d_tot', flex: 1 }
                 ],
+                listeners: {
+                    selectionchange: function (selModel, selected) {
+                        var selectedDetalleVenta = selected[0];
+                        if (selectedDetalleVenta) {
+                            formularioDetalleVenta.getForm().loadRecord(selectedDetalleVenta); // Carga el registro en el formulario
+
+                        }
+                    }
+                },
                 bbar: {
                     xtype: 'pagingtoolbar',
                     store: ventaDetalleStore,
@@ -286,9 +337,15 @@
                     {
                         text: 'Nuevo Detalle',
                         handler: function () {
-                            panel2.show();
-                            formularioDetalleVenta.show();
-                            formularioDetalleVenta.getForm().reset(); // Limpiar el formulario
+                            if (!gridCabeceraVentas.getSelectionModel().getSelection()[0]) {
+                                Ext.Msg.alert('Error', 'Seleccione una venta primero');
+
+                            } else {
+
+                                panel2.show();
+                                formularioDetalleVenta.show();
+                                formularioDetalleVenta.getForm().reset(); // Limpiar el formulario
+                            }
                         }
                     },
                     {
