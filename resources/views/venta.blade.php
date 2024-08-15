@@ -6,8 +6,15 @@
     <meta charset="UTF-8" />
     <title>Modulo Cabecera y Detalle</title>
     <link rel="stylesheet" type="text/css" href="{{ asset('extjs/resources/css/ext-all.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <script type="text/javascript" src="{{ asset('extjs/bootstrap.js') }}" charset="utf-8"></script>
     <script type="text/javascript" src="{{ asset('resources/locale/ext-lang-es.js') }}" charset="utf-8"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS (opcional si se necesita JS) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         Ext.onReady(function () {
             Ext.QuickTips.init();
@@ -423,18 +430,26 @@
 
 
             // Contenedor principal
-            Ext.create('Ext.container.Viewport', {
+            Ext.create('Ext.container.Container', {
                 layout: 'hbox',
                 items: [
                     panel1,
                     panel2,
-                ]
+                ],
+                renderTo: Ext.get("my-div")
+
             });
+
         });
     </script>
 </head>
 
 <body>
+
+    @include('partials.header')
+    <div id="my-div">
+        <!-- Contenido de la página -->
+    </div>
 </body>
 
 </html>

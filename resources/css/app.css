@@ -1,0 +1,50 @@
+/* public/css/custom.css */
+.navbar {
+    font-family: "Poppins", sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.05rem;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #f8f9fa !important;
+    transition: color 0.3s ease-in-out;
+}
+
+.navbar-brand:hover {
+    color: #ffc107 !important; /* Color al pasar el cursor sobre el nombre de la aplicación */
+}
+
+.navbar-nav .nav-link {
+    margin-left: 20px;
+    color: #adb5bd;
+    padding: 10px 20px;
+    transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out,
+        transform 0.3s ease-in-out;
+    border-radius: 5px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #fff !important;
+    background-color: #495057;
+    transform: scale(1.05);
+}
+
+.navbar-nav .nav-link.active {
+    color: #fff !important;
+    background-color: #007bff;
+    border-radius: 5px;
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-toggler-icon {
+    filter: invert(100%);
+}
+
+.shadow-sm {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+}

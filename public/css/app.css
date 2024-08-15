@@ -1,0 +1,43 @@
+/* Estilos personalizados para el menú de navegación */
+.navbar {
+    background-color: #343a40; /* Color de fondo oscuro */
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Tipografía simple y moderna */
+    padding: 0.75rem 1rem; /* Espaciado interno */
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff; /* Color del texto */
+}
+
+.nav-link {
+    color: #dcdcdc; /* Color de los enlaces */
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #ffffff; /* Color al pasar el mouse */
+    background-color: #495057; /* Fondo al pasar el mouse */
+    border-radius: 0.25rem;
+}
+
+.nav-link.active {
+    color: #ffffff; /* Color del enlace activo */
+    background-color: #007bff; /* Fondo del enlace activo */
+    border-radius: 0.25rem;
+}
+
+.navbar-toggler {
+    border: none; /* Quitar el borde del botón */
+}
+
+.navbar-toggler-icon {
+    background-color: #ffffff; /* Color del icono del botón */
+}
+
+.container {
+    max-width: 1200px; /* Ancho máximo del contenedor */
+}
